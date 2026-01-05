@@ -9,14 +9,11 @@ import { ShoppingCart, ArrowRight } from "lucide-react";
 export default function AddToCart({ product }: { product: Product }) {
 	const router = useRouter();
 
-	const { items, addItem } = useCart((state) => ({
-		items: state.items,
-		addItem: state.addItem,
-	}));
+	const items = useCart((state) => state.items);
+	const addItem = useCart((state) => state.addItem);
 
 	const isOutOfStock = product.stock !== undefined && product.stock <= 0;
 
-	
 	const isInCart = items.some((item) => item.id === product.id);
 
 	const handleClick = () => {
@@ -31,8 +28,18 @@ export default function AddToCart({ product }: { product: Product }) {
 
 	return (
 		<Button
+			variant="outline"
 			size="lg"
-			className="w-full md:w-auto min-w-[200px] h-12 text-base transition active:scale-95"
+			className="
+      w-full h-14 
+      border-primary/40 
+      text-primary 
+      hover:bg-primary/10 
+      hover:border-primary 
+      transition-all 
+      active:scale-[0.98] 
+      hover:cursor-pointer
+    "
 			onClick={handleClick}
 			disabled={isOutOfStock}
 			aria-label="Add product to cart"
