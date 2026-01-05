@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react"; // Added Lock icon
 
 const checkoutSchema = z.object({
 	name: z.string().min(2, "Name is required"),
@@ -27,7 +27,11 @@ export default function CheckoutPage() {
 	const router = useRouter();
 	const { items, clearCart } = useCart();
 	const [loading, setLoading] = useState(false);
-	const [isSuccess, setIsSuccess] = useState(false); // New flag to prevent redirect conflict
+	const [isSuccess, setIsSuccess] = useState(false);
+
+	// NEW: Maintenance State
+	const [isMaintenance, setIsMaintenance] = useState(false);
+	const [checkingMaintenance, setCheckingMaintenance] = useState(true);
 
 	// Calculate Total
 	const subtotal = items.reduce(
@@ -41,8 +45,22 @@ export default function CheckoutPage() {
 		resolver: zodResolver(checkoutSchema),
 	});
 
-	// FIX: Move redirect logic here to prevent "Render" error
+	// 1. Check Maintenance Mode & Cart Status
 	useEffect(() => {
+		async function checkSettings() {
+			const { data } = await supabase
+				.from("settings")
+				.select("value")
+				.eq("key", "maintenance_mode")
+				.single();
+
+			if (data && data.value === "true") {
+				setIsMaintenance(true);
+			}
+			setCheckingMaintenance(false);
+		}
+		checkSettings();
+
 		if (items.length === 0 && !isSuccess) {
 			router.push("/cart");
 		}
@@ -85,9 +103,9 @@ export default function CheckoutPage() {
 			if (itemsError) throw itemsError;
 
 			// 3. Success Sequence
-			setIsSuccess(true); // Mark as success FIRST
-			clearCart(); // Then clear cart
-			router.push(`/order-confirmed?orderId=${order.id}`); // Then redirect
+			setIsSuccess(true);
+			clearCart();
+			router.push(`/order-confirmed?orderId=${order.id}`);
 		} catch (error: any) {
 			console.error("Checkout Error:", error);
 			alert("Something went wrong. Please try again.");
@@ -96,7 +114,37 @@ export default function CheckoutPage() {
 		}
 	};
 
-	// Prevent rendering if empty (and not currently succeeding)
+	// 2. Render Loading State
+	if (checkingMaintenance) {
+		return (
+			<div className="h-[60vh] flex items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-primary" />
+			</div>
+		);
+	}
+
+	// 3. Render Maintenance Block (If Enabled)
+	if (isMaintenance) {
+		return (
+			<div className="container py-20 flex flex-col items-center justify-center text-center space-y-6 max-w-lg mx-auto">
+				<div className="h-24 w-24 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+					<Lock className="h-10 w-10 text-red-600" />
+				</div>
+				<h1 className="text-3xl font-bold tracking-tight">
+					Checkout is Disabled
+				</h1>
+				<p className="text-muted-foreground text-lg">
+					Our store is currently undergoing scheduled maintenance. We are not
+					accepting new orders at this moment. Please check back in a few
+					minutes!
+				</p>
+				<Button variant="outline" onClick={() => router.push("/")}>
+					Return Home
+				</Button>
+			</div>
+		);
+	}
+
 	if (items.length === 0 && !isSuccess) {
 		return null;
 	}
@@ -104,7 +152,7 @@ export default function CheckoutPage() {
 	return (
 		<div className="container py-10 max-w-4xl">
 			<h1 className="text-3xl font-bold mb-8">Checkout</h1>
-
+			{/* ... (Rest of your checkout UI remains exactly the same) ... */}
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-10">
 				<div className="space-y-6">
 					<h2 className="text-xl font-semibold">Shipping Information</h2>
