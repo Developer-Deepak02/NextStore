@@ -1,35 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/store";
 import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Check } from "lucide-react";
+import { ShoppingCart, ArrowRight } from "lucide-react";
 
 export default function AddToCart({ product }: { product: Product }) {
-	const addItem = useCart((state) => state.addItem);
-	const [isAdded, setIsAdded] = useState(false);
+	const router = useRouter();
 
-	const handleAdd = () => {
-		addItem(product);
-		setIsAdded(true);
-		setTimeout(() => setIsAdded(false), 2000); // Reset button after 2s
+	const { items, addItem } = useCart((state) => ({
+		items: state.items,
+		addItem: state.addItem,
+	}));
+
+	const isOutOfStock = product.stock !== undefined && product.stock <= 0;
+
+	
+	const isInCart = items.some((item) => item.id === product.id);
+
+	const handleClick = () => {
+		if (isOutOfStock) return;
+
+		if (isInCart) {
+			router.push("/cart");
+		} else {
+			addItem(product);
+		}
 	};
 
 	return (
 		<Button
 			size="lg"
-			className="w-full md:w-auto min-w-[200px] text-lg h-12"
-			onClick={handleAdd}
-			disabled={isAdded}
+			className="w-full md:w-auto min-w-[200px] h-12 text-base transition active:scale-95"
+			onClick={handleClick}
+			disabled={isOutOfStock}
+			aria-label="Add product to cart"
 		>
-			{isAdded ? (
+			{isOutOfStock ? (
+				<span>Out of Stock</span>
+			) : isInCart ? (
 				<>
-					<Check className="mr-2 h-5 w-5" /> Added to Cart
+					Go to Cart <ArrowRight className="ml-2 h-5 w-5" />
 				</>
 			) : (
 				<>
-					<ShoppingCart className="mr-2 h-5 w-5" /> Add to Cart
+					<ShoppingCart className="mr-2 h-5 w-5" />
+					Add to Cart
 				</>
 			)}
 		</Button>
