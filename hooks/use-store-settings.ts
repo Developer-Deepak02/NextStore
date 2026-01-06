@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 
 export function useStoreSettings() {
+	const supabase = createClient();
 	const [settings, setSettings] = useState({
-		storeName: "NextStore", // Default fallback
-		email: "support@nextstore.com",
+		storeName: "ShopKart", // Default fallback
+		email: "support@shopkart.com",
 		phone: "",
 		address: "",
-		currency: "USD",
+		currency: "INR",
 	});
 	const [loading, setLoading] = useState(true);
 
@@ -24,8 +25,8 @@ export function useStoreSettings() {
 				});
 
 				setSettings({
-					storeName: config.store_name || "NextStore",
-					email: config.support_email || "support@nextstore.com",
+					storeName: config.store_name || "ShopKart",
+					email: config.support_email || "support@shopkart.com",
 					phone: config.store_phone || "",
 					address: config.store_address || "",
 					currency: config.store_currency || "INR",

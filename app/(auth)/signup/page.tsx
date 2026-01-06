@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ import { Loader2 } from "lucide-react";
 
 export default function SignUpPage() {
 	const router = useRouter();
+	const supabase = createClient();
 	const [loading, setLoading] = useState(false);
 	const [formData, setFormData] = useState({
 		name: "",

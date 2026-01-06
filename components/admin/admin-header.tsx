@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, Store, Settings, User } from "lucide-react";
 
 export default function AdminHeader() {
+	const supabase = createClient();
 	const router = useRouter();
 	const [email, setEmail] = useState("");
 	const [initials, setInitials] = useState("AD");

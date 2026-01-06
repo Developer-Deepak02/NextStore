@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCart } from "@/lib/store";
+import { useCart } from "@/hooks/use-cart";
 import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Zap } from "lucide-react";

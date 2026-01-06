@@ -12,7 +12,11 @@ import {
 	User,
 	LogOut,
 	Settings,
-} from "lucide-react"; // Added Settings icon
+	Heart, 
+	MapPin, 
+	LifeBuoy, 
+	LayoutDashboard, 
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,10 +25,10 @@ import {
 	SheetTrigger,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { useCart } from "@/lib/store";
+import { useCart } from "@/hooks/use-cart";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useStoreSettings } from "@/hooks/use-store-settings"; // Import the Hook
+import { createClient } from "@/lib/supabase";
+import { useStoreSettings } from "@/hooks/use-store-settings";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -42,11 +46,11 @@ export default function Navbar() {
 	const router = useRouter();
 	const [searchQuery, setSearchQuery] = useState("");
 
-	// 1. Use the Hook to get Store Name
 	const { settings } = useStoreSettings();
 
 	const [user, setUser] = useState<any>(null);
 	const [isAdmin, setIsAdmin] = useState(false);
+	const supabase = createClient();
 
 	useEffect(() => {
 		setMounted(true);
@@ -133,7 +137,6 @@ export default function Navbar() {
 								<div className="bg-primary/10 p-1.5 rounded-lg group-hover:bg-primary/20 transition-colors">
 									<Package2 className="h-5 w-5 text-primary transition-transform group-hover:scale-110" />
 								</div>
-								{/* DYNAMIC NAME HERE */}
 								<span>{settings.storeName}</span>
 							</Link>
 						</div>
@@ -203,7 +206,13 @@ export default function Navbar() {
 											</Avatar>
 										</Button>
 									</DropdownMenuTrigger>
-									<DropdownMenuContent className="w-56" align="end" forceMount>
+
+									{/* UPDATED DROPDOWN CONTENT */}
+									<DropdownMenuContent
+										className="w-60 bg-card border-border/40 shadow-xl shadow-black/40 text-card-foreground"
+										align="end"
+										forceMount
+									>
 										<DropdownMenuLabel className="font-normal">
 											<div className="flex flex-col space-y-1">
 												<p className="text-sm font-medium leading-none">
@@ -214,33 +223,77 @@ export default function Navbar() {
 												</p>
 											</div>
 										</DropdownMenuLabel>
-										<DropdownMenuSeparator />
+										<DropdownMenuSeparator className="bg-border/40" />
 
+										{/* Admin Links */}
 										{isAdmin && (
-											<DropdownMenuItem asChild>
-												<Link
-													href="/admin"
-													className="cursor-pointer font-semibold text-primary focus:text-primary focus:bg-primary/10"
-												>
-													Admin Dashboard
-												</Link>
-											</DropdownMenuItem>
+											<>
+												<DropdownMenuItem asChild>
+													<Link
+														href="/admin"
+														className="cursor-pointer font-semibold text-primary focus:text-primary focus:bg-primary/10 hover:bg-primary/10 hover:text-primary"
+													>
+														<LayoutDashboard className="mr-2 h-4 w-4" /> Admin
+														Dashboard
+													</Link>
+												</DropdownMenuItem>
+												<DropdownMenuItem asChild>
+													<Link
+														href="/admin/settings"
+														className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary"
+													>
+														<Settings className="mr-2 h-4 w-4" /> Store Settings
+													</Link>
+												</DropdownMenuItem>
+												<DropdownMenuSeparator className="bg-border/40" />
+											</>
 										)}
-										<DropdownMenuItem>Order History</DropdownMenuItem>
 
-										{/* Only show Settings link if admin */}
-										{isAdmin && (
-											<DropdownMenuItem asChild>
-												<Link href="/admin/settings" className="cursor-pointer">
-													Store Settings
-												</Link>
-											</DropdownMenuItem>
-										)}
+										{/* User Links */}
+										<DropdownMenuItem asChild>
+											<Link
+												href="/profile"
+												className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary"
+											>
+												<User className="mr-2 h-4 w-4" /> Profile
+											</Link>
+										</DropdownMenuItem>
 
-										<DropdownMenuSeparator />
+										<DropdownMenuItem asChild>
+											<Link
+												href="/orders"
+												className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary"
+											>
+												<Package2 className="mr-2 h-4 w-4" /> Order History
+											</Link>
+										</DropdownMenuItem>
+										<DropdownMenuItem asChild>
+											<Link
+												href="/profile"
+												className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary"
+											>
+												<MapPin className="mr-2 h-4 w-4" /> Saved Addresses
+											</Link>
+										</DropdownMenuItem>
+
+										<DropdownMenuSeparator className="bg-border/40" />
+
+										{/* Support */}
+										<DropdownMenuItem asChild>
+											<Link
+												href="/contact"
+												className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary"
+											>
+												<LifeBuoy className="mr-2 h-4 w-4" /> Customer Support
+											</Link>
+										</DropdownMenuItem>
+
+										<DropdownMenuSeparator className="bg-border/40" />
+
+										{/* Logout */}
 										<DropdownMenuItem
 											onClick={handleLogout}
-											className="text-red-600 focus:text-red-600 cursor-pointer"
+											className="text-red-500 focus:text-red-500 focus:bg-red-500/10 hover:bg-red-500/10 hover:text-red-500 cursor-pointer"
 										>
 											<LogOut className="mr-2 h-4 w-4" /> Log out
 										</DropdownMenuItem>

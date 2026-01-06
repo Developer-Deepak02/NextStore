@@ -1,8 +1,9 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 
 export async function subscribeToNewsletter(formData: FormData) {
+	const supabase = createClient();
 	const email = formData.get("email") as string;
 
 	if (!email || !email.includes("@")) {

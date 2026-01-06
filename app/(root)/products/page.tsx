@@ -1,6 +1,6 @@
 import ProductCard from "@/components/products/product-card";
 import ProductFilters from "@/components/products/product-filters";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 import { Product, Category } from "@/types";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ export default async function ProductsPage({
 	searchParams: Promise<SearchParams>;
 }) {
 	const params = await searchParams; // Await params in Next.js 15
+	const supabase = createClient();
 
 	// 1. Fetch Categories for Filter Sidebar
 	const { data: categories } = await supabase.from("categories").select("*");
@@ -43,6 +44,7 @@ export default async function ProductsPage({
 	if (params.search) query = query.ilike("title", `%${params.search}%`);
 
 	const { data: products } = await query;
+
 
 	return (
 		<div className="container py-10">

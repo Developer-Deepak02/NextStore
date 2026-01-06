@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useAdminStore } from "@/lib/admin-store"; 
+import { useAdminStore } from "@/lib/admin-store";
 import {
 	LayoutDashboard,
 	ShoppingBag,
@@ -15,16 +15,50 @@ import {
 	X,
 	LogOut,
 	ChevronLeft,
+	MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase";
 
 export default function AdminSidebar() {
 	const pathname = usePathname();
-
-	// Replace local state with Global Store
 	const { isCollapsed, toggleCollapsed } = useAdminStore();
 	const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+	// --- NEW: STATE FOR UNREAD MESSAGES ---
+	const [messageCount, setMessageCount] = useState(0);
+	const supabase = createClient();
+
+	useEffect(() => {
+		async function getMessageCount() {
+			// Fetches the total count of rows in the contact_messages table
+			const { count, error } = await supabase
+				.from("contact_messages")
+				.select("*", { count: "exact", head: true });
+
+			if (!error && count !== null) {
+				setMessageCount(count);
+			}
+		}
+
+		getMessageCount();
+
+		// Optional: Set up a real-time subscription to update the badge instantly
+		const channel = supabase
+			.channel("schema-db-changes")
+			.on(
+				"postgres_changes",
+				{ event: "*", schema: "public", table: "contact_messages" },
+				() => getMessageCount()
+			)
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(channel);
+		};
+	}, []);
+	// ---------------------------------------
 
 	const routes = [
 		{ label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
@@ -33,13 +67,19 @@ export default function AdminSidebar() {
 		{ label: "Stock", icon: Package, href: "/admin/stock" },
 		{ label: "Users", icon: Users, href: "/admin/users" },
 		{ label: "Coupons", icon: TicketPercent, href: "/admin/coupons" },
+		{
+			label: "Messages",
+			icon: MessageSquare,
+			href: "/admin/messages",
+			badge: messageCount, // Pass the count here
+		},
 		{ label: "Settings", icon: Settings, href: "/admin/settings" },
 	];
 
 	return (
 		<>
 			{/* Mobile Trigger */}
-			<div className="md:hidden flex items-center p-4 bg-background border-b">
+			<div className="md:hidden flex items-center p-4 bg-background border-b border-border/40">
 				<Button
 					variant="ghost"
 					size="icon"
@@ -53,7 +93,7 @@ export default function AdminSidebar() {
 			{/* Sidebar Container */}
 			<div
 				className={cn(
-					"fixed inset-y-0 left-0 z-50 flex-col bg-card shadow-xl transition-all duration-300 ease-in-out md:flex",
+					"fixed inset-y-0 left-0 z-50 flex-col bg-card shadow-xl transition-all duration-300 ease-in-out md:flex border-r border-border/40",
 					isCollapsed ? "w-[80px]" : "w-72",
 					isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
 				)}
@@ -103,7 +143,7 @@ export default function AdminSidebar() {
 								key={route.href}
 								href={route.href}
 								className={cn(
-									"flex items-center rounded-xl transition-all duration-200 group",
+									"flex items-center rounded-xl transition-all duration-200 group relative",
 									isCollapsed ? "justify-center p-3" : "px-4 py-3 gap-3",
 									pathname === route.href
 										? "bg-primary text-primary-foreground shadow-md"
@@ -111,15 +151,30 @@ export default function AdminSidebar() {
 								)}
 							>
 								<route.icon className={cn("h-5 w-5 flex-shrink-0")} />
+
 								{!isCollapsed && (
-									<span className="font-medium whitespace-nowrap">
+									<span className="font-medium whitespace-nowrap flex-1">
 										{route.label}
+									</span>
+								)}
+
+								{/* --- DYNAMIC BADGE --- */}
+								{route.badge > 0 && (
+									<span
+										className={cn(
+											"flex items-center justify-center rounded-full bg-red-500 text-white font-bold animate-in zoom-in",
+											isCollapsed
+												? "absolute -top-1 -right-1 h-4 w-4 text-[10px]"
+												: "h-5 w-5 text-[11px]"
+										)}
+									>
+										{route.badge}
 									</span>
 								)}
 
 								{isCollapsed && (
 									<div className="absolute left-full ml-2 hidden rounded-md bg-foreground px-2 py-1 text-xs text-background group-hover:block z-50 whitespace-nowrap">
-										{route.label}
+										{route.label} {route.badge > 0 && `(${route.badge})`}
 									</div>
 								)}
 							</Link>

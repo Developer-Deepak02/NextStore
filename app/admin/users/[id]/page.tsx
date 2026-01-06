@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 export default function UserDetailPage() {
+    const supabase = createClient();
   const { id } = useParams();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -181,7 +182,7 @@ export default function UserDetailPage() {
                         ) : (
                             <div className="space-y-0">
                                 {user.orders.map((order: any) => (
-                                    <div key={order.id} className="flex items-center justify-between p-4 border-b last:border-0 hover:bg-secondary/20 transition-colors">
+                                    <div key={order.id} className="flex items-center justify-between p-4  last:border-0 hover:bg-secondary/20 transition-colors">
                                         <div>
                                             <p className="font-medium flex items-center gap-2">
                                                 Order #{order.id.slice(0, 8)}

@@ -1,7 +1,7 @@
 import Hero from "@/components/home/hero";
 import Features from "@/components/home/features";
 import ProductCard from "@/components/products/product-card";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/server";
 import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -10,8 +10,8 @@ import { ArrowRight, TrendingUp, Star } from "lucide-react";
 // Ensure fresh data on every visit so randomization works
 export const revalidate = 0;
 
-// 1. Fetch Newest Items
-async function getLatestProducts() {
+// 1. Fetch Newest Items - ACCEPT SUPABASE AS ARGUMENT
+async function getLatestProducts(supabase: any) {
 	const { data, error } = await supabase
 		.from("products")
 		.select("*")
@@ -26,8 +26,8 @@ async function getLatestProducts() {
 	return data as Product[];
 }
 
-// 2. Fetch Random "Top" Items
-async function getRandomTopProducts() {
+// 2. Fetch Random "Top" Items - ACCEPT SUPABASE AS ARGUMENT
+async function getRandomTopProducts(supabase: any) {
 	// Fetch a pool of active products (e.g., 20)
 	const { data, error } = await supabase
 		.from("products")
@@ -48,8 +48,11 @@ async function getRandomTopProducts() {
 }
 
 export default async function Home() {
-	const latestProducts = await getLatestProducts();
-	const topProducts = await getRandomTopProducts();
+	const supabase = await createClient();
+
+	// PASS THE SUPABASE CLIENT HERE
+	const latestProducts = await getLatestProducts(supabase);
+	const topProducts = await getRandomTopProducts(supabase);
 
 	return (
 		<div className="flex flex-col min-h-screen">

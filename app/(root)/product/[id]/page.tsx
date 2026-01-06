@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 import { Product } from "@/types";
 import {
 	Star,
@@ -17,8 +17,11 @@ import AddToCart from "@/components/products/add-to-cart";
 import BuyNow from "@/components/products/buy-now";
 import ProductPrice from "@/components/products/product-price";
 import { Badge } from "@/components/ui/badge";
+import { useCart } from "@/hooks/use-cart";
 
 export const revalidate = 0;
+// Initialize Supabase Client
+const supabase = createClient();
 
 function StarRating({ rating }: { rating: number }) {
 	return (
